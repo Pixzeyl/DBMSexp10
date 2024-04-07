@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Management System</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #FFFFFF;
+    color: #222222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px;
+  }
+
+  h1, h2 {
+    color: #4B4E6D;
+  }
+
+  .container button {
+    padding: 8px 15px;
+    background-color: #84DCC6;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 10px;
+  }
+
+  .container button:hover {
+    background-color: #95A3B3;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  /* Additional styling for forms */
+  form {
+    margin-bottom: 20px;
+  }
+
+  form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #4B4E6D;
+  }
+
+  form input,
+  form select,
+  form button {
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+  }
+
+  form button {
+    background-color: #84DCC6;
+    color: #FFFFFF;
+    cursor: pointer;
+  }
+
+  form button:hover {
+    background-color: #95A3B3;
+  }
+
+  /* Styling for update form */
+  #updatePatientForm {
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Patient Information Management System</h1>
+    
+    <!-- Form for adding a patient -->
+    <h2>Add Patient</h2>
+    <form id="addPatientForm" action="/addPatient" method="POST">
+      <label for="pid">Patient ID:</label>
+      <input type="text" id="pid" name="pid" required><br>
+      <label for="pname">Patient Name:</label>
+      <input type="text" id="pname" name="pname" required><br>
+      <label for="age">Age:</label>
+      <input type="number" id="age" name="age" required><br>
+      <label for="gender">Gender:</label>
+      <select id="gender" name="gender" required>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select><br>
+      <label for="address">Address:</label>
+      <input type="text" id="address" name="address" required><br>
+      <label for="docid">Doctor ID:</label>
+      <input type="text" id="docid" name="docid" required><br>
+      <label for="roomid">Room ID:</label>
+      <input type="text" id="roomid" name="roomid" required><br>
+      <button type="submit">Add Patient</button>
+    </form>
+
+    <!-- Form for updating a patient -->
+    <h2>Update Patient</h2>
+    <form id="updatePatientForm" action="/updatePatient" method="POST">
+      <label for="updatePid">Patient ID:</label>
+      <input type="text" id="updatePid" name="updatePid" readonly><br>
+      <label for="updatePname">Patient Name:</label>
+      <input type="text" id="updatePname" name="updatePname" required><br>
+      <label for="updateAge">Age:</label>
+      <input type="number" id="updateAge" name="updateAge" required><br>
+      <label for="updateGender">Gender:</label>
+      <select id="updateGender" name="updateGender" required>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select><br>
+      <label for="updateAddress">Address:</label>
+      <input type="text" id="updateAddress" name="updateAddress" required><br>
+      <label for="updateDocid">Doctor ID:</label>
+      <input type="text" id="updateDocid" name="updateDocid" required><br>
+      <label for="updateRoomid">Room ID:</label>
+      <input type="text" id="updateRoomid" name="updateRoomid" required><br>
+      <button type="submit">Update Patient</button>
+      <button type="button" id="cancelUpdateBtn">Cancel</button>
+    </form>
+
+    <!-- Button to display patient table -->
+    <button id="displayTableBtn">Display Patient Table</button>
+    
+    <!-- Table to display patients -->
+    <h2>Patient List</h2>
+    <table id="patientTable" border="1">
+      <!-- Table headers -->
+      <thead>
+        <tr>
+          <th>Patient ID</th>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Gender</th>
+          <th>Address</th>
+          <th>Doctor ID</th>
+          <th>Room ID</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="patientTableBody">
+        <!-- Table rows will be populated dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Script for handling CRUD operations -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const displayTableBtn = document.getElementById('displayTableBtn');
+      const addPatientForm = document.getElementById('addPatientForm');
+      const updatePatientForm = document.getElementById('updatePatientForm');
+      const cancelUpdateBtn = document.getElementById('cancelUpdateBtn');
+      const patientTableBody = document.getElementById('patientTableBody');
+
+      // Function to fetch and display patients
+      function displayPatients() {
+        fetch('/displayTable')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error fetching patients');
+            }
+            return response.json();
+          })
+          .then(patients => {
+            patientTableBody.innerHTML = ''; // Clear existing table rows
+            patients.forEach(patient => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${patient.pid}</td>
+                <td>${patient.pname}</td>
+                <td>${patient.age}</td>
+                <td>${patient.gender}</td>
+                <td>${patient.address}</td>
+                <td>${patient.docid}</td>
+                <td>${patient.roomid}</td>
+                <td>
+                  <button class="editBtn" data-pid="${patient.pid}">Edit</button>
+                  <button class="deleteBtn" data-pid="${patient.pid}">Delete</button>
+                </td>
+              `;
+              patientTableBody.appendChild(row);
+            });
+
+            // Add event listeners to edit and delete buttons
+            const editButtons = document.querySelectorAll('.editBtn');
+            editButtons.forEach(button => {
+              button.addEventListener('click', function() {
+                const pid = button.getAttribute('data-pid');
+                fetch(`/getPatient/${pid}`)
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error('Error fetching patient data');
+                    }
+                    return response.json();
+                  })
+                  .then(patient => {
+                    // Populate update form fields with patient data
+                    document.getElementById('updatePid').value = patient.pid;
+                    document.getElementById('updatePname').value = patient.pname;
+                    document.getElementById('updateAge').value = patient.age;
+                    document.getElementById('updateGender').value = patient.gender;
+                    document.getElementById('updateAddress').value = patient.address;
+                    document.getElementById('updateDocid').value = patient.docid;
+                    document.getElementById('updateRoomid').value = patient.roomid;
+                    updatePatientForm.style.display = 'block'; // Show update form
+                  })
+                  .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching patient data');
+                  });
+              });
+            });
+
+            const deleteButtons = document.querySelectorAll('.deleteBtn');
+            deleteButtons.forEach(button => {
+              button.addEventListener('click', function() {
+                const pid = button.getAttribute('data-pid');
+                deletePatient(pid);
+              });
+            });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Error fetching patients');
+          });
+      }
+
+      // Function to delete a patient
+      function deletePatient(pid) {
+        fetch(`/deletePatient/${pid}`, {
+          method: 'DELETE'
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error deleting patient');
+            }
+            return response.json();
+          })
+          .then(result => {
+            alert('Patient deleted successfully');
+            // Refresh the patient table
+            displayPatients();
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting patient');
+          });
+      }
+
+      // Event listener for cancel update button
+      cancelUpdateBtn.addEventListener('click', function() {
+        updatePatientForm.style.display = 'none'; // Hide update form
+      });
+
+      // Initial display of patient table
+      displayPatients();
+
+      // Other CRUD operations...
+    });
+  </script>
+</body>
+</html>
