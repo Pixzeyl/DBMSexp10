@@ -1,5 +1,13 @@
+make folder in C: drive called 'public'
+add index.html
+add server.js
+install node modules
+
+run with node server.js 
+[in folder directory C:\'public']
+
 For node modules;
 npm install express mysql body-parser
 
 for init mysql with root, replace your_password_for_mysql with your mysql root pwd;
- ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password_for_mysql';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_password_for_mysql';
